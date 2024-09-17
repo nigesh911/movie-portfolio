@@ -1,18 +1,16 @@
+import { Movie } from '@/types/movie'
 import MovieCard from './MovieCard'
-
-interface Movie {
-  id: number;
-  title: string;
-  poster_path: string;
-  overview: string;
-}
 
 interface MovieGridProps {
   movies: Movie[];
-  onAddToWatched: (movieId: number) => void;
+  onAddToWatched: (movie: Movie) => void;  // Change this line
 }
 
-export default function MovieGrid({ movies, onAddToWatched }: MovieGridProps) {
+const MovieGrid: React.FC<MovieGridProps> = ({ movies, onAddToWatched }) => {
+  if (movies.length === 0) {
+    return <p>No movies to display</p>
+  }
+
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       {movies.map((movie) => (
@@ -21,3 +19,5 @@ export default function MovieGrid({ movies, onAddToWatched }: MovieGridProps) {
     </div>
   )
 }
+
+export default MovieGrid

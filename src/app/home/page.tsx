@@ -3,7 +3,7 @@
 import { Movie } from '@/types/movie'
 import MovieCard from '@/components/MovieCard'
 import { fetchPopularMovies } from '@/lib/tmdb'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import InfiniteScroll from 'react-infinite-scroll-component'
 
 export default function Home() {
@@ -13,7 +13,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const loadMoreMovies = async () => {
+  const loadMoreMovies = useCallback(async () => {
     if (isLoading) return
     setIsLoading(true)
     setError(null)
@@ -32,11 +32,11 @@ export default function Home() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [isLoading, page])
 
   useEffect(() => {
     loadMoreMovies()
-  }, [])
+  }, [loadMoreMovies])
 
   const handleAddToWatched = (movie: Movie) => {
     const watchedMovies = JSON.parse(localStorage.getItem('watchedMovies') || '[]')

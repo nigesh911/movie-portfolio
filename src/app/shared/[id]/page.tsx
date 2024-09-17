@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
-import MovieCard from '@/components/MovieCard'
 
 interface SharedMovie {
   id: number;
@@ -18,17 +17,26 @@ interface SharedData {
 export default function SharedList() {
   const params = useParams()
   const [sharedData, setSharedData] = useState<SharedData | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (params.id) {
+    const id = params?.id
+    if (typeof id === 'string') {
       try {
-        const decodedData = JSON.parse(atob(params.id as string))
+        const decodedData = JSON.parse(atob(id))
         setSharedData(decodedData)
       } catch (error) {
         console.error('Error decoding shared data:', error)
+        setError('Failed to decode shared data. The link might be invalid.')
       }
+    } else {
+      setError('Invalid shared list ID')
     }
-  }, [params.id])
+  }, [params])
+
+  if (error) {
+    return <div className="text-red-500">{error}</div>
+  }
 
   if (!sharedData) {
     return <div>Loading shared list...</div>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import MovieCard from '@/components/MovieCard'
 import { searchMovies } from '@/lib/tmdb'
@@ -14,7 +14,6 @@ interface WatchedMovie extends Movie {
 export default function Watched() {
   const { data: session } = useSession()
   const [watchedMovies, setWatchedMovies] = useState<WatchedMovie[]>([])
-  const [searchTerm, setSearchTerm] = useState('')
   const [searchResults, setSearchResults] = useState<Movie[]>([])
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null)
   const [shareUrl, setShareUrl] = useState('')
@@ -27,14 +26,27 @@ export default function Watched() {
     }
   }, [])
 
+  const handleShare = useCallback(() => {
+    const shareData = {
+      userId: session?.user?.name || 'Anonymous',
+      movies: watchedMovies.map(movie => ({
+        id: movie.id,
+        title: movie.title,
+        review: movie.review
+      }))
+    }
+    const shareString = btoa(JSON.stringify(shareData))
+    const url = `${window.location.origin}/shared/${shareString}`
+    setShareUrl(url)
+  }, [session, watchedMovies])
+
   useEffect(() => {
     if (window.location.hash === '#share') {
       handleShare()
     }
-  }, [watchedMovies])
+  }, [watchedMovies, handleShare])
 
   const handleSearch = async (value: string) => {
-    setSearchTerm(value)
     if (value.length > 2) {
       const results = await searchMovies(value)
       setSearchResults(results)
@@ -49,7 +61,6 @@ export default function Watched() {
       setWatchedMovies(updatedWatchedMovies)
       localStorage.setItem('watchedMovies', JSON.stringify(updatedWatchedMovies))
     }
-    setSearchTerm('')
     setSearchResults([])
     setSelectedMovie(null)
   }
@@ -60,20 +71,6 @@ export default function Watched() {
     )
     setWatchedMovies(updatedMovies)
     localStorage.setItem('watchedMovies', JSON.stringify(updatedMovies))
-  }
-
-  const handleShare = () => {
-    const shareData = {
-      userId: session?.user?.name || 'Anonymous',
-      movies: watchedMovies.map(movie => ({
-        id: movie.id,
-        title: movie.title,
-        review: movie.review
-      }))
-    }
-    const shareString = btoa(JSON.stringify(shareData))
-    const url = `${window.location.origin}/shared/${shareString}`
-    setShareUrl(url)
   }
 
   const handleCopyUrl = () => {
